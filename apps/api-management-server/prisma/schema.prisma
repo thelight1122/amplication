@@ -1,0 +1,55 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DB_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Api {
+  createdAt   DateTime       @default(now())
+  description String?
+  endpoint    String?
+  id          String         @id @default(cuid())
+  method      EnumApiMethod?
+  service     Service?       @relation(fields: [serviceId], references: [id])
+  serviceId   String?
+  updatedAt   DateTime       @updatedAt
+}
+
+model Service {
+  apis        Api[]
+  createdAt   DateTime @default(now())
+  description String?
+  id          String   @id @default(cuid())
+  name        String?
+  updatedAt   DateTime @updatedAt
+}
+
+model Catalog {
+  createdAt   DateTime @default(now())
+  description String?
+  id          String   @id @default(cuid())
+  name        String?
+  updatedAt   DateTime @updatedAt
+  user        User?    @relation(fields: [userId], references: [id])
+  userId      String?
+}
+
+model User {
+  catalogs  Catalog[]
+  createdAt DateTime  @default(now())
+  email     String?   @unique
+  firstName String?
+  id        String    @id @default(cuid())
+  lastName  String?
+  password  String
+  roles     Json
+  updatedAt DateTime  @updatedAt
+  username  String    @unique
+}
+
+enum EnumApiMethod {
+  Option1
+}
