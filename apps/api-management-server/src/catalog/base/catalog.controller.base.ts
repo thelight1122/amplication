@@ -49,11 +49,27 @@ export class CatalogControllerBase {
     @common.Body() data: CatalogCreateInput
   ): Promise<Catalog> {
     return await this.service.createCatalog({
-      data: data,
+      data: {
+        ...data,
+
+        user: data.user
+          ? {
+              connect: data.user,
+            }
+          : undefined,
+      },
       select: {
         createdAt: true,
+        description: true,
         id: true,
+        name: true,
         updatedAt: true,
+
+        user: {
+          select: {
+            id: true,
+          },
+        },
       },
     });
   }
@@ -76,8 +92,16 @@ export class CatalogControllerBase {
       ...args,
       select: {
         createdAt: true,
+        description: true,
         id: true,
+        name: true,
         updatedAt: true,
+
+        user: {
+          select: {
+            id: true,
+          },
+        },
       },
     });
   }
@@ -101,8 +125,16 @@ export class CatalogControllerBase {
       where: params,
       select: {
         createdAt: true,
+        description: true,
         id: true,
+        name: true,
         updatedAt: true,
+
+        user: {
+          select: {
+            id: true,
+          },
+        },
       },
     });
     if (result === null) {
@@ -132,11 +164,27 @@ export class CatalogControllerBase {
     try {
       return await this.service.updateCatalog({
         where: params,
-        data: data,
+        data: {
+          ...data,
+
+          user: data.user
+            ? {
+                connect: data.user,
+              }
+            : undefined,
+        },
         select: {
           createdAt: true,
+          description: true,
           id: true,
+          name: true,
           updatedAt: true,
+
+          user: {
+            select: {
+              id: true,
+            },
+          },
         },
       });
     } catch (error) {
@@ -168,8 +216,16 @@ export class CatalogControllerBase {
         where: params,
         select: {
           createdAt: true,
+          description: true,
           id: true,
+          name: true,
           updatedAt: true,
+
+          user: {
+            select: {
+              id: true,
+            },
+          },
         },
       });
     } catch (error) {
@@ -180,5 +236,90 @@ export class CatalogControllerBase {
       }
       throw error;
     }
+  }
+
+  @common.Post("/catalogs")
+  @swagger.ApiOkResponse({
+    type: Catalog,
+  })
+  @swagger.ApiNotFoundResponse({
+    type: errors.NotFoundException,
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
+  async CreateNewCatalog(
+    @common.Body()
+    body: CatalogUpdateInput
+  ): Promise<Catalog> {
+    return this.service.CreateNewCatalog(body);
+  }
+
+  @common.Get("/catalogs")
+  @swagger.ApiOkResponse({
+    type: Catalog,
+  })
+  @swagger.ApiNotFoundResponse({
+    type: errors.NotFoundException,
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
+  async GetAllCatalogs(
+    @common.Body()
+    body: CatalogUpdateInput
+  ): Promise<Catalog[]> {
+    return this.service.GetAllCatalogs(body);
+  }
+
+  @common.Get("/catalogs/:id")
+  @swagger.ApiOkResponse({
+    type: Catalog,
+  })
+  @swagger.ApiNotFoundResponse({
+    type: errors.NotFoundException,
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
+  async GetCatalogById(
+    @common.Body()
+    body: CatalogUpdateInput
+  ): Promise<Catalog> {
+    return this.service.GetCatalogById(body);
+  }
+
+  @common.Delete("/catalogs/:id")
+  @swagger.ApiOkResponse({
+    type: Catalog,
+  })
+  @swagger.ApiNotFoundResponse({
+    type: errors.NotFoundException,
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
+  async RemoveCatalog(
+    @common.Body()
+    body: CatalogUpdateInput
+  ): Promise<Catalog> {
+    return this.service.RemoveCatalog(body);
+  }
+
+  @common.Put("/catalogs/:id")
+  @swagger.ApiOkResponse({
+    type: Catalog,
+  })
+  @swagger.ApiNotFoundResponse({
+    type: errors.NotFoundException,
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
+  async UpdateExistingCatalog(
+    @common.Body()
+    body: CatalogUpdateInput
+  ): Promise<Catalog> {
+    return this.service.UpdateExistingCatalog(body);
   }
 }

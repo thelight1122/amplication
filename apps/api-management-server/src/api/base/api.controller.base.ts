@@ -26,6 +26,8 @@ import { Api } from "./Api";
 import { ApiFindManyArgs } from "./ApiFindManyArgs";
 import { ApiWhereUniqueInput } from "./ApiWhereUniqueInput";
 import { ApiUpdateInput } from "./ApiUpdateInput";
+import { CatalogUpdateInput } from "../../catalog/base/CatalogUpdateInput";
+import { Catalog } from "../../catalog/base/Catalog";
 
 @swagger.ApiBearerAuth()
 @common.UseGuards(defaultAuthGuard.DefaultAuthGuard, nestAccessControl.ACGuard)
@@ -47,10 +49,28 @@ export class ApiControllerBase {
   })
   async createApi(@common.Body() data: ApiCreateInput): Promise<Api> {
     return await this.service.createApi({
-      data: data,
+      data: {
+        ...data,
+
+        service: data.service
+          ? {
+              connect: data.service,
+            }
+          : undefined,
+      },
       select: {
         createdAt: true,
+        description: true,
+        endpoint: true,
         id: true,
+        method: true,
+
+        service: {
+          select: {
+            id: true,
+          },
+        },
+
         updatedAt: true,
       },
     });
@@ -74,7 +94,17 @@ export class ApiControllerBase {
       ...args,
       select: {
         createdAt: true,
+        description: true,
+        endpoint: true,
         id: true,
+        method: true,
+
+        service: {
+          select: {
+            id: true,
+          },
+        },
+
         updatedAt: true,
       },
     });
@@ -97,7 +127,17 @@ export class ApiControllerBase {
       where: params,
       select: {
         createdAt: true,
+        description: true,
+        endpoint: true,
         id: true,
+        method: true,
+
+        service: {
+          select: {
+            id: true,
+          },
+        },
+
         updatedAt: true,
       },
     });
@@ -128,10 +168,28 @@ export class ApiControllerBase {
     try {
       return await this.service.updateApi({
         where: params,
-        data: data,
+        data: {
+          ...data,
+
+          service: data.service
+            ? {
+                connect: data.service,
+              }
+            : undefined,
+        },
         select: {
           createdAt: true,
+          description: true,
+          endpoint: true,
           id: true,
+          method: true,
+
+          service: {
+            select: {
+              id: true,
+            },
+          },
+
           updatedAt: true,
         },
       });
@@ -164,7 +222,17 @@ export class ApiControllerBase {
         where: params,
         select: {
           createdAt: true,
+          description: true,
+          endpoint: true,
           id: true,
+          method: true,
+
+          service: {
+            select: {
+              id: true,
+            },
+          },
+
           updatedAt: true,
         },
       });
@@ -176,5 +244,90 @@ export class ApiControllerBase {
       }
       throw error;
     }
+  }
+
+  @common.Post("/apis")
+  @swagger.ApiOkResponse({
+    type: Catalog,
+  })
+  @swagger.ApiNotFoundResponse({
+    type: errors.NotFoundException,
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
+  async CreateNewApi(
+    @common.Body()
+    body: CatalogUpdateInput
+  ): Promise<Catalog> {
+    return this.service.CreateNewApi(body);
+  }
+
+  @common.Get("/apis")
+  @swagger.ApiOkResponse({
+    type: Catalog,
+  })
+  @swagger.ApiNotFoundResponse({
+    type: errors.NotFoundException,
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
+  async GetAllApIs(
+    @common.Body()
+    body: CatalogUpdateInput
+  ): Promise<Catalog[]> {
+    return this.service.GetAllApIs(body);
+  }
+
+  @common.Get("/apis/:id")
+  @swagger.ApiOkResponse({
+    type: Catalog,
+  })
+  @swagger.ApiNotFoundResponse({
+    type: errors.NotFoundException,
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
+  async GetApiById(
+    @common.Body()
+    body: CatalogUpdateInput
+  ): Promise<Catalog> {
+    return this.service.GetApiById(body);
+  }
+
+  @common.Delete("/apis/:id")
+  @swagger.ApiOkResponse({
+    type: Catalog,
+  })
+  @swagger.ApiNotFoundResponse({
+    type: errors.NotFoundException,
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
+  async RemoveApi(
+    @common.Body()
+    body: CatalogUpdateInput
+  ): Promise<Catalog> {
+    return this.service.RemoveApi(body);
+  }
+
+  @common.Put("/apis/:id")
+  @swagger.ApiOkResponse({
+    type: Catalog,
+  })
+  @swagger.ApiNotFoundResponse({
+    type: errors.NotFoundException,
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
+  async UpdateExistingApi(
+    @common.Body()
+    body: CatalogUpdateInput
+  ): Promise<Catalog> {
+    return this.service.UpdateExistingApi(body);
   }
 }

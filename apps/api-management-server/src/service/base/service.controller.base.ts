@@ -26,6 +26,10 @@ import { Service } from "./Service";
 import { ServiceFindManyArgs } from "./ServiceFindManyArgs";
 import { ServiceWhereUniqueInput } from "./ServiceWhereUniqueInput";
 import { ServiceUpdateInput } from "./ServiceUpdateInput";
+import { ApiFindManyArgs } from "../../api/base/ApiFindManyArgs";
+import { Api } from "../../api/base/Api";
+import { ApiWhereUniqueInput } from "../../api/base/ApiWhereUniqueInput";
+import { UpdateServiceArgs } from "./UpdateServiceArgs";
 
 @swagger.ApiBearerAuth()
 @common.UseGuards(defaultAuthGuard.DefaultAuthGuard, nestAccessControl.ACGuard)
@@ -52,7 +56,9 @@ export class ServiceControllerBase {
       data: data,
       select: {
         createdAt: true,
+        description: true,
         id: true,
+        name: true,
         updatedAt: true,
       },
     });
@@ -76,7 +82,9 @@ export class ServiceControllerBase {
       ...args,
       select: {
         createdAt: true,
+        description: true,
         id: true,
+        name: true,
         updatedAt: true,
       },
     });
@@ -101,7 +109,9 @@ export class ServiceControllerBase {
       where: params,
       select: {
         createdAt: true,
+        description: true,
         id: true,
+        name: true,
         updatedAt: true,
       },
     });
@@ -135,7 +145,9 @@ export class ServiceControllerBase {
         data: data,
         select: {
           createdAt: true,
+          description: true,
           id: true,
+          name: true,
           updatedAt: true,
         },
       });
@@ -168,7 +180,9 @@ export class ServiceControllerBase {
         where: params,
         select: {
           createdAt: true,
+          description: true,
           id: true,
+          name: true,
           updatedAt: true,
         },
       });
@@ -180,5 +194,195 @@ export class ServiceControllerBase {
       }
       throw error;
     }
+  }
+
+  @common.UseInterceptors(AclFilterResponseInterceptor)
+  @common.Get("/:id/apis")
+  @ApiNestedQuery(ApiFindManyArgs)
+  @nestAccessControl.UseRoles({
+    resource: "Api",
+    action: "read",
+    possession: "any",
+  })
+  async findApis(
+    @common.Req() request: Request,
+    @common.Param() params: ServiceWhereUniqueInput
+  ): Promise<Api[]> {
+    const query = plainToClass(ApiFindManyArgs, request.query);
+    const results = await this.service.findApis(params.id, {
+      ...query,
+      select: {
+        createdAt: true,
+        description: true,
+        endpoint: true,
+        id: true,
+        method: true,
+
+        service: {
+          select: {
+            id: true,
+          },
+        },
+
+        updatedAt: true,
+      },
+    });
+    if (results === null) {
+      throw new errors.NotFoundException(
+        `No resource was found for ${JSON.stringify(params)}`
+      );
+    }
+    return results;
+  }
+
+  @common.Post("/:id/apis")
+  @nestAccessControl.UseRoles({
+    resource: "Service",
+    action: "update",
+    possession: "any",
+  })
+  async connectApis(
+    @common.Param() params: ServiceWhereUniqueInput,
+    @common.Body() body: ApiWhereUniqueInput[]
+  ): Promise<void> {
+    const data = {
+      apis: {
+        connect: body,
+      },
+    };
+    await this.service.updateService({
+      where: params,
+      data,
+      select: { id: true },
+    });
+  }
+
+  @common.Patch("/:id/apis")
+  @nestAccessControl.UseRoles({
+    resource: "Service",
+    action: "update",
+    possession: "any",
+  })
+  async updateApis(
+    @common.Param() params: ServiceWhereUniqueInput,
+    @common.Body() body: ApiWhereUniqueInput[]
+  ): Promise<void> {
+    const data = {
+      apis: {
+        set: body,
+      },
+    };
+    await this.service.updateService({
+      where: params,
+      data,
+      select: { id: true },
+    });
+  }
+
+  @common.Delete("/:id/apis")
+  @nestAccessControl.UseRoles({
+    resource: "Service",
+    action: "update",
+    possession: "any",
+  })
+  async disconnectApis(
+    @common.Param() params: ServiceWhereUniqueInput,
+    @common.Body() body: ApiWhereUniqueInput[]
+  ): Promise<void> {
+    const data = {
+      apis: {
+        disconnect: body,
+      },
+    };
+    await this.service.updateService({
+      where: params,
+      data,
+      select: { id: true },
+    });
+  }
+
+  @common.Post("/services")
+  @swagger.ApiOkResponse({
+    type: Service,
+  })
+  @swagger.ApiNotFoundResponse({
+    type: errors.NotFoundException,
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
+  async CreateNewService(
+    @common.Body()
+    body: UpdateServiceArgs
+  ): Promise<Service> {
+    return this.service.CreateNewService(body);
+  }
+
+  @common.Get("/services")
+  @swagger.ApiOkResponse({
+    type: Service,
+  })
+  @swagger.ApiNotFoundResponse({
+    type: errors.NotFoundException,
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
+  async GetAllServices(
+    @common.Body()
+    body: UpdateServiceArgs
+  ): Promise<Service[]> {
+    return this.service.GetAllServices(body);
+  }
+
+  @common.Get("/services/:id")
+  @swagger.ApiOkResponse({
+    type: Service,
+  })
+  @swagger.ApiNotFoundResponse({
+    type: errors.NotFoundException,
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
+  async GetServiceById(
+    @common.Body()
+    body: UpdateServiceArgs
+  ): Promise<Service> {
+    return this.service.GetServiceById(body);
+  }
+
+  @common.Delete("/services/:id")
+  @swagger.ApiOkResponse({
+    type: Service,
+  })
+  @swagger.ApiNotFoundResponse({
+    type: errors.NotFoundException,
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
+  async RemoveService(
+    @common.Body()
+    body: UpdateServiceArgs
+  ): Promise<Service> {
+    return this.service.RemoveService(body);
+  }
+
+  @common.Put("/services/:id")
+  @swagger.ApiOkResponse({
+    type: Service,
+  })
+  @swagger.ApiNotFoundResponse({
+    type: errors.NotFoundException,
+  })
+  @swagger.ApiForbiddenResponse({
+    type: errors.ForbiddenException,
+  })
+  async UpdateExistingService(
+    @common.Body()
+    body: UpdateServiceArgs
+  ): Promise<Service> {
+    return this.service.UpdateExistingService(body);
   }
 }

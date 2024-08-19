@@ -26,6 +26,8 @@ import { UserFindUniqueArgs } from "./UserFindUniqueArgs";
 import { CreateUserArgs } from "./CreateUserArgs";
 import { UpdateUserArgs } from "./UpdateUserArgs";
 import { DeleteUserArgs } from "./DeleteUserArgs";
+import { CatalogFindManyArgs } from "../../catalog/base/CatalogFindManyArgs";
+import { Catalog } from "../../catalog/base/Catalog";
 import { UserService } from "../user.service";
 @common.UseGuards(GqlDefaultAuthGuard, gqlACGuard.GqlACGuard)
 @graphql.Resolver(() => User)
@@ -130,5 +132,25 @@ export class UserResolverBase {
       }
       throw error;
     }
+  }
+
+  @common.UseInterceptors(AclFilterResponseInterceptor)
+  @graphql.ResolveField(() => [Catalog], { name: "catalogs" })
+  @nestAccessControl.UseRoles({
+    resource: "Catalog",
+    action: "read",
+    possession: "any",
+  })
+  async findCatalogs(
+    @graphql.Parent() parent: User,
+    @graphql.Args() args: CatalogFindManyArgs
+  ): Promise<Catalog[]> {
+    const results = await this.service.findCatalogs(parent.id, args);
+
+    if (!results) {
+      return [];
+    }
+
+    return results;
   }
 }

@@ -9,5 +9,54 @@ https://docs.amplication.com/how-to/custom-code
 
 ------------------------------------------------------------------------------
   */
-class ServiceCreateInput {}
+import { InputType, Field } from "@nestjs/graphql";
+import { ApiProperty } from "@nestjs/swagger";
+import { ApiCreateNestedManyWithoutServicesInput } from "./ApiCreateNestedManyWithoutServicesInput";
+import {
+  ValidateNested,
+  IsOptional,
+  IsString,
+  MaxLength,
+} from "class-validator";
+import { Type } from "class-transformer";
+
+@InputType()
+class ServiceCreateInput {
+  @ApiProperty({
+    required: false,
+    type: () => ApiCreateNestedManyWithoutServicesInput,
+  })
+  @ValidateNested()
+  @Type(() => ApiCreateNestedManyWithoutServicesInput)
+  @IsOptional()
+  @Field(() => ApiCreateNestedManyWithoutServicesInput, {
+    nullable: true,
+  })
+  apis?: ApiCreateNestedManyWithoutServicesInput;
+
+  @ApiProperty({
+    required: false,
+    type: String,
+  })
+  @IsString()
+  @MaxLength(1000)
+  @IsOptional()
+  @Field(() => String, {
+    nullable: true,
+  })
+  description?: string | null;
+
+  @ApiProperty({
+    required: false,
+    type: String,
+  })
+  @IsString()
+  @MaxLength(1000)
+  @IsOptional()
+  @Field(() => String, {
+    nullable: true,
+  })
+  name?: string | null;
+}
+
 export { ServiceCreateInput as ServiceCreateInput };

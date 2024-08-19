@@ -18,11 +18,18 @@ import * as gqlACGuard from "../../auth/gqlAC.guard";
 import { GqlDefaultAuthGuard } from "../../auth/gqlDefaultAuth.guard";
 import * as common from "@nestjs/common";
 import { AclFilterResponseInterceptor } from "../../interceptors/aclFilterResponse.interceptor";
+import { AclValidateRequestInterceptor } from "../../interceptors/aclValidateRequest.interceptor";
 import { Service } from "./Service";
 import { ServiceCountArgs } from "./ServiceCountArgs";
 import { ServiceFindManyArgs } from "./ServiceFindManyArgs";
 import { ServiceFindUniqueArgs } from "./ServiceFindUniqueArgs";
+import { CreateServiceArgs } from "./CreateServiceArgs";
+import { UpdateServiceArgs } from "./UpdateServiceArgs";
 import { DeleteServiceArgs } from "./DeleteServiceArgs";
+import { ApiFindManyArgs } from "../../api/base/ApiFindManyArgs";
+import { Api } from "../../api/base/Api";
+import { ServiceCreateInput } from "./ServiceCreateInput";
+import { ServiceWhereUniqueInput } from "./ServiceWhereUniqueInput";
 import { ServiceService } from "../service.service";
 @common.UseGuards(GqlDefaultAuthGuard, gqlACGuard.GqlACGuard)
 @graphql.Resolver(() => Service)
@@ -77,6 +84,47 @@ export class ServiceResolverBase {
     return result;
   }
 
+  @common.UseInterceptors(AclValidateRequestInterceptor)
+  @graphql.Mutation(() => Service)
+  @nestAccessControl.UseRoles({
+    resource: "Service",
+    action: "create",
+    possession: "any",
+  })
+  async createService(
+    @graphql.Args() args: CreateServiceArgs
+  ): Promise<Service> {
+    return await this.service.createService({
+      ...args,
+      data: args.data,
+    });
+  }
+
+  @common.UseInterceptors(AclValidateRequestInterceptor)
+  @graphql.Mutation(() => Service)
+  @nestAccessControl.UseRoles({
+    resource: "Service",
+    action: "update",
+    possession: "any",
+  })
+  async updateService(
+    @graphql.Args() args: UpdateServiceArgs
+  ): Promise<Service | null> {
+    try {
+      return await this.service.updateService({
+        ...args,
+        data: args.data,
+      });
+    } catch (error) {
+      if (isRecordNotFoundError(error)) {
+        throw new GraphQLError(
+          `No resource was found for ${JSON.stringify(args.where)}`
+        );
+      }
+      throw error;
+    }
+  }
+
   @graphql.Mutation(() => Service)
   @nestAccessControl.UseRoles({
     resource: "Service",
@@ -96,5 +144,65 @@ export class ServiceResolverBase {
       }
       throw error;
     }
+  }
+
+  @common.UseInterceptors(AclFilterResponseInterceptor)
+  @graphql.ResolveField(() => [Api], { name: "apis" })
+  @nestAccessControl.UseRoles({
+    resource: "Api",
+    action: "read",
+    possession: "any",
+  })
+  async findApis(
+    @graphql.Parent() parent: Service,
+    @graphql.Args() args: ApiFindManyArgs
+  ): Promise<Api[]> {
+    const results = await this.service.findApis(parent.id, args);
+
+    if (!results) {
+      return [];
+    }
+
+    return results;
+  }
+
+  @graphql.Mutation(() => Service)
+  async CreateNewService(
+    @graphql.Args()
+    args: ServiceCreateInput
+  ): Promise<Service> {
+    return this.service.CreateNewService(args);
+  }
+
+  @graphql.Query(() => [Service])
+  async GetAllServices(
+    @graphql.Args()
+    args: ServiceFindManyArgs
+  ): Promise<Service[]> {
+    return this.service.GetAllServices(args);
+  }
+
+  @graphql.Query(() => Service)
+  async GetServiceById(
+    @graphql.Args()
+    args: ServiceFindUniqueArgs
+  ): Promise<Service> {
+    return this.service.GetServiceById(args);
+  }
+
+  @graphql.Mutation(() => Service)
+  async RemoveService(
+    @graphql.Args()
+    args: ServiceWhereUniqueInput
+  ): Promise<Service> {
+    return this.service.RemoveService(args);
+  }
+
+  @graphql.Mutation(() => Service)
+  async UpdateExistingService(
+    @graphql.Args()
+    args: UpdateServiceArgs
+  ): Promise<Service> {
+    return this.service.UpdateExistingService(args);
   }
 }

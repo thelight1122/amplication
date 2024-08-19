@@ -18,11 +18,18 @@ import * as gqlACGuard from "../../auth/gqlAC.guard";
 import { GqlDefaultAuthGuard } from "../../auth/gqlDefaultAuth.guard";
 import * as common from "@nestjs/common";
 import { AclFilterResponseInterceptor } from "../../interceptors/aclFilterResponse.interceptor";
+import { AclValidateRequestInterceptor } from "../../interceptors/aclValidateRequest.interceptor";
 import { Catalog } from "./Catalog";
 import { CatalogCountArgs } from "./CatalogCountArgs";
 import { CatalogFindManyArgs } from "./CatalogFindManyArgs";
 import { CatalogFindUniqueArgs } from "./CatalogFindUniqueArgs";
+import { CreateCatalogArgs } from "./CreateCatalogArgs";
+import { UpdateCatalogArgs } from "./UpdateCatalogArgs";
 import { DeleteCatalogArgs } from "./DeleteCatalogArgs";
+import { User } from "../../user/base/User";
+import { CatalogCreateInput } from "./CatalogCreateInput";
+import { CatalogWhereUniqueInput } from "./CatalogWhereUniqueInput";
+import { CatalogUpdateInput } from "./CatalogUpdateInput";
 import { CatalogService } from "../catalog.service";
 @common.UseGuards(GqlDefaultAuthGuard, gqlACGuard.GqlACGuard)
 @graphql.Resolver(() => Catalog)
@@ -77,6 +84,63 @@ export class CatalogResolverBase {
     return result;
   }
 
+  @common.UseInterceptors(AclValidateRequestInterceptor)
+  @graphql.Mutation(() => Catalog)
+  @nestAccessControl.UseRoles({
+    resource: "Catalog",
+    action: "create",
+    possession: "any",
+  })
+  async createCatalog(
+    @graphql.Args() args: CreateCatalogArgs
+  ): Promise<Catalog> {
+    return await this.service.createCatalog({
+      ...args,
+      data: {
+        ...args.data,
+
+        user: args.data.user
+          ? {
+              connect: args.data.user,
+            }
+          : undefined,
+      },
+    });
+  }
+
+  @common.UseInterceptors(AclValidateRequestInterceptor)
+  @graphql.Mutation(() => Catalog)
+  @nestAccessControl.UseRoles({
+    resource: "Catalog",
+    action: "update",
+    possession: "any",
+  })
+  async updateCatalog(
+    @graphql.Args() args: UpdateCatalogArgs
+  ): Promise<Catalog | null> {
+    try {
+      return await this.service.updateCatalog({
+        ...args,
+        data: {
+          ...args.data,
+
+          user: args.data.user
+            ? {
+                connect: args.data.user,
+              }
+            : undefined,
+        },
+      });
+    } catch (error) {
+      if (isRecordNotFoundError(error)) {
+        throw new GraphQLError(
+          `No resource was found for ${JSON.stringify(args.where)}`
+        );
+      }
+      throw error;
+    }
+  }
+
   @graphql.Mutation(() => Catalog)
   @nestAccessControl.UseRoles({
     resource: "Catalog",
@@ -96,5 +160,64 @@ export class CatalogResolverBase {
       }
       throw error;
     }
+  }
+
+  @common.UseInterceptors(AclFilterResponseInterceptor)
+  @graphql.ResolveField(() => User, {
+    nullable: true,
+    name: "user",
+  })
+  @nestAccessControl.UseRoles({
+    resource: "User",
+    action: "read",
+    possession: "any",
+  })
+  async getUser(@graphql.Parent() parent: Catalog): Promise<User | null> {
+    const result = await this.service.getUser(parent.id);
+
+    if (!result) {
+      return null;
+    }
+    return result;
+  }
+
+  @graphql.Mutation(() => Catalog)
+  async CreateNewCatalog(
+    @graphql.Args()
+    args: CatalogCreateInput
+  ): Promise<Catalog> {
+    return this.service.CreateNewCatalog(args);
+  }
+
+  @graphql.Query(() => [Catalog])
+  async GetAllCatalogs(
+    @graphql.Args()
+    args: CatalogFindManyArgs
+  ): Promise<Catalog[]> {
+    return this.service.GetAllCatalogs(args);
+  }
+
+  @graphql.Query(() => Catalog)
+  async GetCatalogById(
+    @graphql.Args()
+    args: CatalogFindUniqueArgs
+  ): Promise<Catalog> {
+    return this.service.GetCatalogById(args);
+  }
+
+  @graphql.Mutation(() => Catalog)
+  async RemoveCatalog(
+    @graphql.Args()
+    args: CatalogWhereUniqueInput
+  ): Promise<Catalog> {
+    return this.service.RemoveCatalog(args);
+  }
+
+  @graphql.Mutation(() => Catalog)
+  async UpdateExistingCatalog(
+    @graphql.Args()
+    args: CatalogUpdateInput
+  ): Promise<Catalog> {
+    return this.service.UpdateExistingCatalog(args);
   }
 }

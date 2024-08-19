@@ -18,11 +18,21 @@ import * as gqlACGuard from "../../auth/gqlAC.guard";
 import { GqlDefaultAuthGuard } from "../../auth/gqlDefaultAuth.guard";
 import * as common from "@nestjs/common";
 import { AclFilterResponseInterceptor } from "../../interceptors/aclFilterResponse.interceptor";
+import { AclValidateRequestInterceptor } from "../../interceptors/aclValidateRequest.interceptor";
 import { Api } from "./Api";
 import { ApiCountArgs } from "./ApiCountArgs";
 import { ApiFindManyArgs } from "./ApiFindManyArgs";
 import { ApiFindUniqueArgs } from "./ApiFindUniqueArgs";
+import { CreateApiArgs } from "./CreateApiArgs";
+import { UpdateApiArgs } from "./UpdateApiArgs";
 import { DeleteApiArgs } from "./DeleteApiArgs";
+import { Service } from "../../service/base/Service";
+import { CatalogCreateInput } from "../../catalog/base/CatalogCreateInput";
+import { Catalog } from "../../catalog/base/Catalog";
+import { CatalogFindManyArgs } from "../../catalog/base/CatalogFindManyArgs";
+import { CatalogFindUniqueArgs } from "../../catalog/base/CatalogFindUniqueArgs";
+import { CatalogWhereUniqueInput } from "../../catalog/base/CatalogWhereUniqueInput";
+import { CatalogUpdateInput } from "../../catalog/base/CatalogUpdateInput";
 import { ApiService } from "../api.service";
 @common.UseGuards(GqlDefaultAuthGuard, gqlACGuard.GqlACGuard)
 @graphql.Resolver(() => Api)
@@ -73,6 +83,59 @@ export class ApiResolverBase {
     return result;
   }
 
+  @common.UseInterceptors(AclValidateRequestInterceptor)
+  @graphql.Mutation(() => Api)
+  @nestAccessControl.UseRoles({
+    resource: "Api",
+    action: "create",
+    possession: "any",
+  })
+  async createApi(@graphql.Args() args: CreateApiArgs): Promise<Api> {
+    return await this.service.createApi({
+      ...args,
+      data: {
+        ...args.data,
+
+        service: args.data.service
+          ? {
+              connect: args.data.service,
+            }
+          : undefined,
+      },
+    });
+  }
+
+  @common.UseInterceptors(AclValidateRequestInterceptor)
+  @graphql.Mutation(() => Api)
+  @nestAccessControl.UseRoles({
+    resource: "Api",
+    action: "update",
+    possession: "any",
+  })
+  async updateApi(@graphql.Args() args: UpdateApiArgs): Promise<Api | null> {
+    try {
+      return await this.service.updateApi({
+        ...args,
+        data: {
+          ...args.data,
+
+          service: args.data.service
+            ? {
+                connect: args.data.service,
+              }
+            : undefined,
+        },
+      });
+    } catch (error) {
+      if (isRecordNotFoundError(error)) {
+        throw new GraphQLError(
+          `No resource was found for ${JSON.stringify(args.where)}`
+        );
+      }
+      throw error;
+    }
+  }
+
   @graphql.Mutation(() => Api)
   @nestAccessControl.UseRoles({
     resource: "Api",
@@ -90,5 +153,64 @@ export class ApiResolverBase {
       }
       throw error;
     }
+  }
+
+  @common.UseInterceptors(AclFilterResponseInterceptor)
+  @graphql.ResolveField(() => Service, {
+    nullable: true,
+    name: "service",
+  })
+  @nestAccessControl.UseRoles({
+    resource: "Service",
+    action: "read",
+    possession: "any",
+  })
+  async getService(@graphql.Parent() parent: Api): Promise<Service | null> {
+    const result = await this.service.getService(parent.id);
+
+    if (!result) {
+      return null;
+    }
+    return result;
+  }
+
+  @graphql.Mutation(() => Catalog)
+  async CreateNewApi(
+    @graphql.Args()
+    args: CatalogCreateInput
+  ): Promise<Catalog> {
+    return this.service.CreateNewApi(args);
+  }
+
+  @graphql.Query(() => [Catalog])
+  async GetAllApIs(
+    @graphql.Args()
+    args: CatalogFindManyArgs
+  ): Promise<Catalog[]> {
+    return this.service.GetAllApIs(args);
+  }
+
+  @graphql.Query(() => Catalog)
+  async GetApiById(
+    @graphql.Args()
+    args: CatalogFindUniqueArgs
+  ): Promise<Catalog> {
+    return this.service.GetApiById(args);
+  }
+
+  @graphql.Mutation(() => Catalog)
+  async RemoveApi(
+    @graphql.Args()
+    args: CatalogWhereUniqueInput
+  ): Promise<Catalog> {
+    return this.service.RemoveApi(args);
+  }
+
+  @graphql.Mutation(() => Catalog)
+  async UpdateExistingApi(
+    @graphql.Args()
+    args: CatalogUpdateInput
+  ): Promise<Catalog> {
+    return this.service.UpdateExistingApi(args);
   }
 }

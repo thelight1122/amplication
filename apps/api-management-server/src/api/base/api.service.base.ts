@@ -10,7 +10,17 @@ https://docs.amplication.com/how-to/custom-code
 ------------------------------------------------------------------------------
   */
 import { PrismaService } from "../../prisma/prisma.service";
-import { Prisma, Api as PrismaApi } from "@prisma/client";
+import {
+  Prisma,
+  Api as PrismaApi,
+  Service as PrismaService,
+} from "@prisma/client";
+import { CatalogCreateInput } from "../../catalog/base/CatalogCreateInput";
+import { Catalog } from "../../catalog/base/Catalog";
+import { CatalogFindManyArgs } from "../../catalog/base/CatalogFindManyArgs";
+import { CatalogFindUniqueArgs } from "../../catalog/base/CatalogFindUniqueArgs";
+import { CatalogWhereUniqueInput } from "../../catalog/base/CatalogWhereUniqueInput";
+import { CatalogUpdateInput } from "../../catalog/base/CatalogUpdateInput";
 
 export class ApiServiceBase {
   constructor(protected readonly prisma: PrismaService) {}
@@ -33,5 +43,28 @@ export class ApiServiceBase {
   }
   async deleteApi(args: Prisma.ApiDeleteArgs): Promise<PrismaApi> {
     return this.prisma.api.delete(args);
+  }
+
+  async getService(parentId: string): Promise<PrismaService | null> {
+    return this.prisma.api
+      .findUnique({
+        where: { id: parentId },
+      })
+      .service();
+  }
+  async CreateNewApi(args: CatalogCreateInput): Promise<Catalog> {
+    throw new Error("Not implemented");
+  }
+  async GetAllApIs(args: CatalogFindManyArgs): Promise<Catalog[]> {
+    throw new Error("Not implemented");
+  }
+  async GetApiById(args: CatalogFindUniqueArgs): Promise<Catalog> {
+    throw new Error("Not implemented");
+  }
+  async RemoveApi(args: CatalogWhereUniqueInput): Promise<Catalog> {
+    throw new Error("Not implemented");
+  }
+  async UpdateExistingApi(args: CatalogUpdateInput): Promise<Catalog> {
+    throw new Error("Not implemented");
   }
 }

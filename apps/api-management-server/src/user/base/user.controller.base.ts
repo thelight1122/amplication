@@ -26,6 +26,9 @@ import { User } from "./User";
 import { UserFindManyArgs } from "./UserFindManyArgs";
 import { UserWhereUniqueInput } from "./UserWhereUniqueInput";
 import { UserUpdateInput } from "./UserUpdateInput";
+import { CatalogFindManyArgs } from "../../catalog/base/CatalogFindManyArgs";
+import { Catalog } from "../../catalog/base/Catalog";
+import { CatalogWhereUniqueInput } from "../../catalog/base/CatalogWhereUniqueInput";
 
 @swagger.ApiBearerAuth()
 @common.UseGuards(defaultAuthGuard.DefaultAuthGuard, nestAccessControl.ACGuard)
@@ -203,5 +206,108 @@ export class UserControllerBase {
       }
       throw error;
     }
+  }
+
+  @common.UseInterceptors(AclFilterResponseInterceptor)
+  @common.Get("/:id/catalogs")
+  @ApiNestedQuery(CatalogFindManyArgs)
+  @nestAccessControl.UseRoles({
+    resource: "Catalog",
+    action: "read",
+    possession: "any",
+  })
+  async findCatalogs(
+    @common.Req() request: Request,
+    @common.Param() params: UserWhereUniqueInput
+  ): Promise<Catalog[]> {
+    const query = plainToClass(CatalogFindManyArgs, request.query);
+    const results = await this.service.findCatalogs(params.id, {
+      ...query,
+      select: {
+        createdAt: true,
+        description: true,
+        id: true,
+        name: true,
+        updatedAt: true,
+
+        user: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+    if (results === null) {
+      throw new errors.NotFoundException(
+        `No resource was found for ${JSON.stringify(params)}`
+      );
+    }
+    return results;
+  }
+
+  @common.Post("/:id/catalogs")
+  @nestAccessControl.UseRoles({
+    resource: "User",
+    action: "update",
+    possession: "any",
+  })
+  async connectCatalogs(
+    @common.Param() params: UserWhereUniqueInput,
+    @common.Body() body: CatalogWhereUniqueInput[]
+  ): Promise<void> {
+    const data = {
+      catalogs: {
+        connect: body,
+      },
+    };
+    await this.service.updateUser({
+      where: params,
+      data,
+      select: { id: true },
+    });
+  }
+
+  @common.Patch("/:id/catalogs")
+  @nestAccessControl.UseRoles({
+    resource: "User",
+    action: "update",
+    possession: "any",
+  })
+  async updateCatalogs(
+    @common.Param() params: UserWhereUniqueInput,
+    @common.Body() body: CatalogWhereUniqueInput[]
+  ): Promise<void> {
+    const data = {
+      catalogs: {
+        set: body,
+      },
+    };
+    await this.service.updateUser({
+      where: params,
+      data,
+      select: { id: true },
+    });
+  }
+
+  @common.Delete("/:id/catalogs")
+  @nestAccessControl.UseRoles({
+    resource: "User",
+    action: "update",
+    possession: "any",
+  })
+  async disconnectCatalogs(
+    @common.Param() params: UserWhereUniqueInput,
+    @common.Body() body: CatalogWhereUniqueInput[]
+  ): Promise<void> {
+    const data = {
+      catalogs: {
+        disconnect: body,
+      },
+    };
+    await this.service.updateUser({
+      where: params,
+      data,
+      select: { id: true },
+    });
   }
 }

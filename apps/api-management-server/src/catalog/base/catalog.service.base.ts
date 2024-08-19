@@ -10,7 +10,17 @@ https://docs.amplication.com/how-to/custom-code
 ------------------------------------------------------------------------------
   */
 import { PrismaService } from "../../prisma/prisma.service";
-import { Prisma, Catalog as PrismaCatalog } from "@prisma/client";
+import {
+  Prisma,
+  Catalog as PrismaCatalog,
+  User as PrismaUser,
+} from "@prisma/client";
+import { CatalogCreateInput } from "./CatalogCreateInput";
+import { Catalog } from "./Catalog";
+import { CatalogFindManyArgs } from "./CatalogFindManyArgs";
+import { CatalogFindUniqueArgs } from "./CatalogFindUniqueArgs";
+import { CatalogWhereUniqueInput } from "./CatalogWhereUniqueInput";
+import { CatalogUpdateInput } from "./CatalogUpdateInput";
 
 export class CatalogServiceBase {
   constructor(protected readonly prisma: PrismaService) {}
@@ -35,5 +45,28 @@ export class CatalogServiceBase {
   }
   async deleteCatalog(args: Prisma.CatalogDeleteArgs): Promise<PrismaCatalog> {
     return this.prisma.catalog.delete(args);
+  }
+
+  async getUser(parentId: string): Promise<PrismaUser | null> {
+    return this.prisma.catalog
+      .findUnique({
+        where: { id: parentId },
+      })
+      .user();
+  }
+  async CreateNewCatalog(args: CatalogCreateInput): Promise<Catalog> {
+    throw new Error("Not implemented");
+  }
+  async GetAllCatalogs(args: CatalogFindManyArgs): Promise<Catalog[]> {
+    throw new Error("Not implemented");
+  }
+  async GetCatalogById(args: CatalogFindUniqueArgs): Promise<Catalog> {
+    throw new Error("Not implemented");
+  }
+  async RemoveCatalog(args: CatalogWhereUniqueInput): Promise<Catalog> {
+    throw new Error("Not implemented");
+  }
+  async UpdateExistingCatalog(args: CatalogUpdateInput): Promise<Catalog> {
+    throw new Error("Not implemented");
   }
 }

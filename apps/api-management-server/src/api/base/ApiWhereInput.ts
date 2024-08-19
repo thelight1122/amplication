@@ -11,12 +11,37 @@ https://docs.amplication.com/how-to/custom-code
   */
 import { InputType, Field } from "@nestjs/graphql";
 import { ApiProperty } from "@nestjs/swagger";
-import { StringFilter } from "../../util/StringFilter";
+import { StringNullableFilter } from "../../util/StringNullableFilter";
 import { Type } from "class-transformer";
-import { IsOptional } from "class-validator";
+import { IsOptional, IsEnum, ValidateNested } from "class-validator";
+import { StringFilter } from "../../util/StringFilter";
+import { EnumApiMethod } from "./EnumApiMethod";
+import { ServiceWhereUniqueInput } from "../../service/base/ServiceWhereUniqueInput";
 
 @InputType()
 class ApiWhereInput {
+  @ApiProperty({
+    required: false,
+    type: StringNullableFilter,
+  })
+  @Type(() => StringNullableFilter)
+  @IsOptional()
+  @Field(() => StringNullableFilter, {
+    nullable: true,
+  })
+  description?: StringNullableFilter;
+
+  @ApiProperty({
+    required: false,
+    type: StringNullableFilter,
+  })
+  @Type(() => StringNullableFilter)
+  @IsOptional()
+  @Field(() => StringNullableFilter, {
+    nullable: true,
+  })
+  endpoint?: StringNullableFilter;
+
   @ApiProperty({
     required: false,
     type: StringFilter,
@@ -27,6 +52,29 @@ class ApiWhereInput {
     nullable: true,
   })
   id?: StringFilter;
+
+  @ApiProperty({
+    required: false,
+    enum: EnumApiMethod,
+  })
+  @IsEnum(EnumApiMethod)
+  @IsOptional()
+  @Field(() => EnumApiMethod, {
+    nullable: true,
+  })
+  method?: "Option1";
+
+  @ApiProperty({
+    required: false,
+    type: () => ServiceWhereUniqueInput,
+  })
+  @ValidateNested()
+  @Type(() => ServiceWhereUniqueInput)
+  @IsOptional()
+  @Field(() => ServiceWhereUniqueInput, {
+    nullable: true,
+  })
+  service?: ServiceWhereUniqueInput;
 }
 
 export { ApiWhereInput as ApiWhereInput };

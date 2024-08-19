@@ -10,7 +10,17 @@ https://docs.amplication.com/how-to/custom-code
 ------------------------------------------------------------------------------
   */
 import { PrismaService } from "../../prisma/prisma.service";
-import { Prisma, Service as PrismaService } from "@prisma/client";
+import {
+  Prisma,
+  Service as PrismaService,
+  Api as PrismaApi,
+} from "@prisma/client";
+import { ServiceCreateInput } from "./ServiceCreateInput";
+import { Service } from "./Service";
+import { ServiceFindManyArgs } from "./ServiceFindManyArgs";
+import { ServiceFindUniqueArgs } from "./ServiceFindUniqueArgs";
+import { ServiceWhereUniqueInput } from "./ServiceWhereUniqueInput";
+import { UpdateServiceArgs } from "./UpdateServiceArgs";
 
 export class ServiceServiceBase {
   constructor(protected readonly prisma: PrismaService) {}
@@ -35,5 +45,31 @@ export class ServiceServiceBase {
   }
   async deleteService(args: Prisma.ServiceDeleteArgs): Promise<PrismaService> {
     return this.prisma.service.delete(args);
+  }
+
+  async findApis(
+    parentId: string,
+    args: Prisma.ApiFindManyArgs
+  ): Promise<PrismaApi[]> {
+    return this.prisma.service
+      .findUniqueOrThrow({
+        where: { id: parentId },
+      })
+      .apis(args);
+  }
+  async CreateNewService(args: ServiceCreateInput): Promise<Service> {
+    throw new Error("Not implemented");
+  }
+  async GetAllServices(args: ServiceFindManyArgs): Promise<Service[]> {
+    throw new Error("Not implemented");
+  }
+  async GetServiceById(args: ServiceFindUniqueArgs): Promise<Service> {
+    throw new Error("Not implemented");
+  }
+  async RemoveService(args: ServiceWhereUniqueInput): Promise<Service> {
+    throw new Error("Not implemented");
+  }
+  async UpdateExistingService(args: UpdateServiceArgs): Promise<Service> {
+    throw new Error("Not implemented");
   }
 }
